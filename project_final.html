@@ -1,0 +1,534 @@
+<!-- Venkata Praneeth Mummaneni
+	 Computer Graphics 1: Project-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Computer Graphics 1: Project</title>
+    <h2>Computer Graphics 1: Project</h2>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        h2 {
+            text-align: center;
+            color: white;
+            font-family: sans-serif;
+            background-color: black;
+            margin: auto;
+        }
+        body {
+            margin: 0;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="three.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script src="dat.gui.min.js"></script>
+    
+    <script>
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        //var camera = new THREE.OrthographicCamera( 100, 100, 100, 100, 1, 1000 );
+        
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.BasicShadowMap;
+        document.body.appendChild(renderer.domElement);
+
+        //Resize when browser size is reduced
+        window.addEventListener('resize', function(){
+            var width = window.innerWidth;
+            var height = window.innerHeight;
+            renderer.setSize(width, height);
+            camera.aspect = width/height;
+            camera.updateProjectionMatrix();
+        });
+
+        //Controls
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        //Create Shape
+        var geometry = new THREE.BoxGeometry(1,1,1);
+
+        var cubeMaterials = [
+            //For Colour mapping to each face of the cube
+            new THREE.MeshPhongMaterial({color: 0x0000ff, side: THREE.DoubleSide}),//right side
+            new THREE.MeshPhongMaterial({color: 0xff0000, side: THREE.DoubleSide}),//right side
+            new THREE.MeshPhongMaterial({color: 0x00ff00, side: THREE.DoubleSide}),//left side
+            new THREE.MeshPhongMaterial({color: 0xffff00, side: THREE.DoubleSide}),//top side
+            new THREE.MeshPhongMaterial({color: 0x00ffff, side: THREE.DoubleSide}),//bottom side
+            new THREE.MeshPhongMaterial({color: 0xff00ff, side: THREE.DoubleSide}),//front side
+            //new THREE.MeshPhongMaterial({color: 0xffff00, side: THREE.DoubleSide}),//back side*/
+        ];
+
+        //Create a material, colour or image texture
+        var material = new THREE.MeshFaceMaterial(cubeMaterials);
+        var cube = new THREE.Mesh(geometry, material);
+        cube.castShadow = true;
+        //cube.receiveShadow = true;
+        scene.add(cube);
+        
+        //For stage
+        //var stage = new THREE.PlaneGeometry(5, 5, 100, 100);
+        var stage = new THREE.CircleGeometry( 3, 10000 );
+        var stageMaterial = new THREE.MeshPhongMaterial( {color: 0xffffff ,side: THREE.DoubleSide} );
+        var stageMesh = new THREE.Mesh(stage, stageMaterial);
+        stageMesh.rotation.x -= 1.57;
+        stageMesh.position.y -= 1;
+        stageMesh.receiveShadow = true;
+        scene.add(stageMesh);
+
+        //camera.position.y = 1;
+        camera.position.z = 6;
+
+        //Lighting & Shadows
+        var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        
+        var light = new THREE.PointLight(0xffffff, 0.8, 18);
+        /*light.position.set(0, 6, 0);
+        light.castShadow = true;
+        light.shadow.camera.near = 0.1;
+        light.shadow.camera.far = 25;
+        scene.add(light);*/
+        
+        //var helper = new THREE.PointLightHelper(light);
+        //scene.add(helper);
+        
+        //Game Logic
+        var update = function () {
+            //cube.rotation.x += 0.01;
+            //cube.rotation.y += 0.005;
+        };
+
+        //Draw Scene
+        var render = function () {
+            renderer.render(scene, camera);
+        };
+
+        //Run game loop (update, render, repeat)
+        var gameLoop = function () {
+            requestAnimationFrame(gameLoop);
+            update();
+            render();
+        };
+
+        gameLoop();
+        
+        //For Controls
+        var gui = new dat.GUI;
+        
+        var changeParam = 0.1;
+        
+        parameters = {
+            a: "",
+            b: "",
+            c: "",
+            d: false,
+            e: "",
+            f: "Cube",
+            g: 1, h: 1, i: 1,
+            j: 1, k :1, l: 1,
+            m: 1, n: 1, o: 1,
+            p: 1, q: 1, r: 1,
+            s: "",
+            t: false,
+            u: "",
+            v: "#ffffff",
+            Refresh: function(){
+                history.go(0);
+            }
+        }
+            
+        
+        //For Modelling
+        //var f1 = gui.addFolder('Modelling');
+        gui.add(parameters, 'f').name('Modelling');
+        
+        //For 3D Transformations
+        var f2 = gui.addFolder('3D Transformations');
+        
+        var f2_translate = f2.addFolder('Translate');
+        var xtrans = f2_translate.add(parameters, 'g').min(-5).max(5).step(changeParam).name('X-axis');
+        var ytrans = f2_translate.add(parameters, 'h').min(-5).max(5).step(changeParam).name('Y-axis');
+        var ztrans = f2_translate.add(parameters, 'i').min(-5).max(5).step(changeParam).name('Z-axis');
+        xtrans.onChange(function(jar){cube.position.x = jar;});
+        ytrans.onChange(function(jar){cube.position.y = jar;});
+        ztrans.onChange(function(jar){cube.position.z = jar;});
+        f2_translate.open();
+        
+        var f2_rotate = f2.addFolder('Rotate');
+        var xrotat = f2_rotate.add(parameters, 'j').min(1).max(5).step(changeParam).name('X-axis');
+        var yrotat = f2_rotate.add(parameters, 'k').min(1).max(5).step(changeParam).name('Y-axis');
+        var zrotat = f2_rotate.add(parameters, 'l').min(1).max(5).step(changeParam).name('Z-axis');
+        xrotat.onChange(function(jar){cube.rotation.x = jar;});
+        yrotat.onChange(function(jar){cube.rotation.y = jar;});
+        zrotat.onChange(function(jar){cube.rotation.z = jar;});
+        f2_rotate.open();
+        
+        var f2_scale = f2.addFolder('Scale');
+        var xscale = f2_scale.add(parameters, 'm').min(1).max(10).step(changeParam).name('X-axis');
+        var yscale = f2_scale.add(parameters, 'n').min(1).max(10).step(changeParam).name('Y-axis');
+        var zscale = f2_scale.add(parameters, 'o').min(1).max(10).step(changeParam).name('Z-axis');
+        xscale.onChange(function(jar){cube.scale.x = jar;});
+        yscale.onChange(function(jar){cube.scale.y = jar;});
+        zscale.onChange(function(jar){cube.scale.z = jar;});
+        f2_scale.open();
+        
+        var f2_shear = f2.add(parameters, 'p', ['Along yx', 'Along zx', 'Along xy', 'Along zy', 'Along xz', 'Along yz']).name('Shear');
+        //f2_shear.add(parameters, 'p').min(1).max(20).step(changeParam).name('X-axis');
+        //f2_shear.add(parameters, 'q').min(1).max(20).step(changeParam).name('Y-axis');
+        //f2_shear.add(parameters, 'r').min(1).max(20).step(changeParam).name('Z-axis');
+        f2_shear.onChange(function(jar)
+        {
+            var Syx = 0, Szx = 0, Sxy = 0, Szy = 0, Sxz = 0, Syz = 0;
+            if(jar == 'Along yx')
+            {
+                Syx = 1, Szx = 0, Sxy = 0, Szy = 0, Sxz = 0, Syz = 0;
+                var matrix = new THREE.Matrix4();
+                matrix.set(   1,   Syx,  Szx,  0,
+                            Sxy,     1,  Szy,  0,
+                            Sxz,   Syz,   1,   0,
+                            0,     0,   0,   1  );
+                cube.geometry.applyMatrix(matrix);
+            }
+            else if(jar == 'Along zx')
+            {
+                Syx = 0, Szx = 1, Sxy = 0, Szy = 0, Sxz = 0, Syz = 0;
+                var matrix = new THREE.Matrix4();
+                matrix.set(   1,   Syx,  Szx,  0,
+                            Sxy,     1,  Szy,  0,
+                            Sxz,   Syz,   1,   0,
+                            0,     0,   0,   1  );
+                cube.geometry.applyMatrix(matrix);
+            }
+            else if(jar == 'Along xy')
+            {
+                Syx = 0, Szx = 0, Sxy = 1, Szy = 0, Sxz = 0, Syz = 0;
+                var matrix = new THREE.Matrix4();
+                matrix.set(   1,   Syx,  Szx,  0,
+                            Sxy,     1,  Szy,  0,
+                            Sxz,   Syz,   1,   0,
+                            0,     0,   0,   1  );
+                cube.geometry.applyMatrix(matrix);
+            }
+            else if(jar == 'Along zy')
+            {
+                Syx = 0, Szx = 0, Sxy = 0, Szy = 1, Sxz = 0, Syz = 0;
+                var matrix = new THREE.Matrix4();
+                matrix.set(   1,   Syx,  Szx,  0,
+                            Sxy,     1,  Szy,  0,
+                            Sxz,   Syz,   1,   0,
+                            0,     0,   0,   1  );
+                cube.geometry.applyMatrix(matrix);
+            }
+            else if(jar == 'Along xz')
+            {
+                Syx = 0, Szx = 0, Sxy = 0, Szy = 0, Sxz = 1, Syz = 0;
+                var matrix = new THREE.Matrix4();
+                matrix.set(   1,   Syx,  Szx,  0,
+                            Sxy,     1,  Szy,  0,
+                            Sxz,   Syz,   1,   0,
+                            0,     0,   0,   1  );
+                cube.geometry.applyMatrix(matrix);
+            }
+            else if(jar == 'Along yz')
+            {
+                Syx = 0, Szx = 0, Sxy = 0, Szy = 0, Sxz = 0, Syz = 1;
+                var matrix = new THREE.Matrix4();
+                matrix.set(   1,   Syx,  Szx,  0,
+                            Sxy,     1,  Szy,  0,
+                            Sxz,   Syz,   1,   0,
+                            0,     0,   0,   1  );
+                cube.geometry.applyMatrix(matrix);
+            }
+        }
+        );
+        f2.open();
+        
+        //For Views/Projections
+        //var f3 = gui.addFolder('Views');
+        var viewParam = gui.add(parameters, 'c', ['Front View', 'Top View', 'Side View', 'Oblique', 'Isometric', 'Dimetric', 'Trimetric']).name('Views/Projections');
+        viewParam.onChange(function(jar)
+        {
+            if(jar == "Front View")
+            {
+                
+            }
+            else if(jar == 'Top View')
+            {
+                cube.rotation.x += 1.56;       
+            }
+            else if(jar == 'Side View')
+            {
+                cube.rotation.y += 1.56;
+            }
+            else if(jar == 'Oblique')
+            {
+                cube.rotation.x += 0.30;
+                cube.rotation.y += 1.25;
+            }
+            else if(jar == 'Isometric')
+            {
+                cube.rotation.x += 0.61;
+                cube.rotation.y += 0.78;
+            }
+            else if(jar == 'Dimetric')
+            {
+                cube.rotation.x += 0.61;
+                cube.rotation.y += 0.80;
+            }
+            else if(jar == 'Trimetric')
+            {
+                cube.rotation.x += 0.61;
+                cube.rotation.y += 1.2;
+            }
+        }
+        );
+        
+        //For Camera, Viewer, Light
+        //var f4 = gui.addFolder('Transform Camera/Viewer/Light');
+        var lightParam = gui.add(parameters, 'e', ['Front of Cube', 'Top of Cube', 'Top Near Left', 'Top Near Right', 'Top Far Left', 'Top Far Right', 'Bottom of Stage']).name('Point Light');
+        lightParam.onChange(function(jar)
+        {
+            if(jar == "Top of Cube")
+            {
+                scene.remove(light);
+                light.position.set(0, 6, 0);
+            }
+            else if(jar == "Front of Cube")
+            {
+                scene.remove(light);
+                light.position.set(0, 0, 3);
+            }
+            else if(jar == "Top Near Left")
+            {
+                scene.remove(light);
+                light.position.set(-3, 6, 3);
+            }
+            else if(jar == "Top Near Right")
+            {
+                scene.remove(light);
+                light.position.set(3, 6, 3);
+            }
+            else if(jar == "Top Far Left")
+            {
+                scene.remove(light);
+                light.position.set(-3, 6, -3);
+            }
+            else if(jar == "Top Far Right")
+            {
+                scene.remove(light);
+                light.position.set(3, 6, -3);
+            }
+            else if(jar == "Bottom of Stage")
+            {
+                scene.remove(light);
+                light.position.set(0, -6, 0);
+            }
+            light.castShadow = true;
+            light.shadow.camera.near = 0.1;
+            light.shadow.camera.far = 25;
+            scene.add(light);
+        }
+        );
+        
+        //var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        //scene.add(ambientLight);
+        var ambientLights = gui.addColor(parameters, 'v').name('Ambient Light');
+        ambientLights.onChange(function(jar)
+        {
+            ambientLight.color.setHex(jar.replace("#", "0x"));
+        }
+        );
+        
+        //For Projections
+        //var f5 = gui.addFolder('Projections');
+        
+        //Vanishing Point Views
+        //var f6 = gui.addFolder('Vanishing Points');
+        var vanishingParams = gui.add(parameters, 'b', [1, 2, 3]).name('Vanishing Points');
+        vanishingParams.onChange(function(jar)
+        {
+            if(jar == 1)
+            {
+                cube.rotation.x += 0.75;
+            }
+            else if(jar == 2)
+            {
+                cube.rotation.x += 0.61;
+                cube.rotation.y += 0.78;
+            }
+            else if(jar == 3)
+            {
+                cube.rotation.x -= 0.61;
+                cube.rotation.y += 0.78;
+            }
+        }
+        );
+        
+        //For textures
+        //var f7 = gui.addFolder('Textures');
+        var textureMaterials = gui.add(parameters, 'a', ['Plain/Default', 'Wooden Crate', 'Gift Box', 'Windows Logo', 'Metal Crate', 'Chess Box', 'YouTube Logo']).name('Cube Textures');
+        textureMaterials.onChange(function(jar)
+        {
+            if(jar == "Plain/Default")
+            {
+                scene.remove(cube);
+                cubeMaterials = [
+                    //For Colour mapping to each face of the cube
+                    new THREE.MeshPhongMaterial({color: 0x0000ff, side: THREE.DoubleSide}),//right side
+                    new THREE.MeshPhongMaterial({color: 0xff0000, side: THREE.DoubleSide}),//right side
+                    new THREE.MeshPhongMaterial({color: 0x00ff00, side: THREE.DoubleSide}),//left side
+                    new THREE.MeshPhongMaterial({color: 0xffff00, side: THREE.DoubleSide}),//top side
+                    new THREE.MeshPhongMaterial({color: 0x00ffff, side: THREE.DoubleSide}),//bottom side
+                    new THREE.MeshPhongMaterial({color: 0xff00ff, side: THREE.DoubleSide}),//front side
+                    //new THREE.MeshPhongMaterial({color: 0xffff00, side: THREE.DoubleSide}),//back side*/
+                ];
+                
+            }
+            else if(jar == "Wooden Crate")
+            {
+                scene.remove(cube);
+                cubeMaterials = 
+                [
+                    //For Image mapping to each face of the cube
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate1.png'), side: THREE.DoubleSide}),//right side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate1.png'), side: THREE.DoubleSide}),//left side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate1.png'), side: THREE.DoubleSide}),//top side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate1.png'), side: THREE.DoubleSide}),//bottom side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate1.png'), side: THREE.DoubleSide}),//front side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate1.png'), side: THREE.DoubleSide}),//back side
+                ];
+            }
+            else if(jar == "Gift Box")
+            {
+                scene.remove(cube);
+                cubeMaterials = 
+                [
+                    //For Image mapping to each face of the cube
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate2.png'), side: THREE.DoubleSide}),//right side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate2.png'), side: THREE.DoubleSide}),//left side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate2.png'), side: THREE.DoubleSide}),//top side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate2.png'), side: THREE.DoubleSide}),//bottom side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate2.png'), side: THREE.DoubleSide}),//front side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate2.png'), side: THREE.DoubleSide}),//back side
+                ];
+            }
+            else if(jar == "Windows Logo")
+            {
+                scene.remove(cube);
+                cubeMaterials = 
+                [
+                    //For Image mapping to each face of the cube
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate3.png'), side: THREE.DoubleSide}),//right side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate3.png'), side: THREE.DoubleSide}),//left side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate3.png'), side: THREE.DoubleSide}),//top side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate3.png'), side: THREE.DoubleSide}),//bottom side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate3.png'), side: THREE.DoubleSide}),//front side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate3.png'), side: THREE.DoubleSide}),//back side
+                ];
+            }
+            else if(jar == "Metal Crate")
+            {
+                scene.remove(cube);
+                cubeMaterials = 
+                [
+                    //For Image mapping to each face of the cube
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate4.png'), side: THREE.DoubleSide}),//right side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate4.png'), side: THREE.DoubleSide}),//left side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate4.png'), side: THREE.DoubleSide}),//top side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate4.png'), side: THREE.DoubleSide}),//bottom side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate4.png'), side: THREE.DoubleSide}),//front side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate4.png'), side: THREE.DoubleSide}),//back side
+                ];
+            }
+            else if(jar == "Chess Box")
+            {
+                scene.remove(cube);
+                cubeMaterials = 
+                [
+                    //For Image mapping to each face of the cube
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate5.png'), side: THREE.DoubleSide}),//right side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate5.png'), side: THREE.DoubleSide}),//left side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate5.png'), side: THREE.DoubleSide}),//top side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate5.png'), side: THREE.DoubleSide}),//bottom side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate5.png'), side: THREE.DoubleSide}),//front side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate5.png'), side: THREE.DoubleSide}),//back side
+                ];
+            }
+            else if(jar == "YouTube Logo")
+            {
+                scene.remove(cube);
+                cubeMaterials = 
+                [
+                    //For Image mapping to each face of the cube
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate6.png'), side: THREE.DoubleSide}),//right side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate6.png'), side: THREE.DoubleSide}),//left side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate6.png'), side: THREE.DoubleSide}),//top side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate6.png'), side: THREE.DoubleSide}),//bottom side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate6.png'), side: THREE.DoubleSide}),//front side
+                    new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('crate6.png'), side: THREE.DoubleSide}),//back side
+                ];
+            }
+            material = new THREE.MeshFaceMaterial(cubeMaterials);
+            cube = new THREE.Mesh(geometry, material);
+            cube.castShadow = true;
+            scene.add(cube);
+            
+        });
+        
+        var stageMaterials = gui.add(parameters, 'u', ['Plain/Default', 'Wood', 'Grass', 'Granite', 'Marble']).name('Floor/Environment');
+        stageMaterials.onChange(function(jar)
+        {
+            if(jar == 'Plain/Default')
+            {
+                scene.remove(stageMesh);
+                stageMaterial = new THREE.MeshPhongMaterial( {color: 0xffffff ,side: THREE.DoubleSide} );
+            }
+            else if(jar == 'Wood')
+            {
+                scene.remove(stageMesh);
+                stageMaterial = new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('wooden_floor.png'), side: THREE.DoubleSide});
+            }
+            else if(jar == 'Grass')
+            {
+                scene.remove(stageMesh);
+                stageMaterial = new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('grass.png'), side: THREE.DoubleSide});
+            }
+            else if(jar == 'Granite')
+            {
+                scene.remove(stageMesh);
+                stageMaterial = new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('granite.png'), side: THREE.DoubleSide});
+            }
+            else if(jar == 'Marble')
+            {
+                scene.remove(stageMesh);
+                stageMaterial = new THREE.MeshPhongMaterial({map: new THREE.TextureLoader().load('marble.png'), side: THREE.DoubleSide});
+            }
+            stageMesh = new THREE.Mesh(stage, stageMaterial);
+            stageMesh.rotation.x -= 1.57;
+            stageMesh.position.y -= 1;
+            stageMesh.receiveShadow = true;
+            scene.add(stageMesh);
+        }
+        );
+        
+        //var helper = new THREE.PointLightHelper(light);
+        //scene.add(helper);
+        
+        var refreshScreen = gui.add(parameters, 'Refresh');
+    </script>
+</body>
+
+</html>
